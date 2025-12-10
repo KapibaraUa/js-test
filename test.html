@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Тест по JavaScript</title>
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            padding: 20px;
+        }
+        .question-block {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            width: 500px;
+        }
+        h2 { margin-top: 0; }
+        .timer-text {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .hidden { display: none; }
+        
+        
+        #nameInputSection {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            width: 500px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="nameInputSection">
+        <label>Введите ваше имя перед началом: </label>
+        <input type="text" id="username" placeholder="Имя">
+        <button onclick="startTest()">Начать тест</button>
+    </div>
+
+    <div id="testArea" class="hidden">
+        <h3>2. Написать клиентский сценарий «Тест по JavaScript».</h3>
+        <h2>Вопрос №1 из 12</h2>
+
+        <div class="question-block">
+            <p><strong>Для чего можно использовать JavaScript?</strong></p>
+            
+            <form id="quizForm">
+                <div>
+                    <input type="checkbox" id="ans1" name="answer">
+                    <label for="ans1">Для создания самостоятельной исполняемой программы</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="ans2" name="answer">
+                    <label for="ans2">Для обработки событий на web-странице</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="ans3" name="answer">
+                    <label for="ans3">Для добавления динамики и 'интеллекта' в web-страницу</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="ans4" name="answer">
+                    <label for="ans4">все варианты верны</label>
+                </div>
+                <br>
+                <button type="button" id="submitBtn" onclick="finishTest()">Ответить</button>
+            </form>
+        </div>
+
+        <p class="timer-text">Осталось: <span id="timer">10</span> секунд</p>
+    </div>
+
+    <script>
+        "use strict";
+
+        let timeLeft = 10;
+        let timerId = null;
+        let testActive = false;
+
+        function startTest() {
+            let name = document.getElementById("username").value;
+            if (name.trim() === "") {
+                alert("Пожалуйста, введите имя!");
+                return;
+            }
+
+            document.getElementById("nameInputSection").classList.add("hidden");
+            document.getElementById("testArea").classList.remove("hidden");
+            
+            testActive = true;
+            
+            timerId = setInterval(function() {
+                timeLeft--;
+                document.getElementById("timer").textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    finishTest(true); 
+                }
+            }, 1000);
+        }
+
+        
+        function finishTest(timeOut = false) {
+            if (!testActive) return; 
+            
+            clearInterval(timerId);
+            testActive = false;
+            let inputs = document.getElementById("quizForm").getElementsByTagName("input");
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].disabled = true;
+            }
+            document.getElementById("submitBtn").disabled = true;
+
+            
+            
+            let ans1 = document.getElementById("ans1").checked;
+            let ans2 = document.getElementById("ans2").checked;
+            let ans3 = document.getElementById("ans3").checked;
+            let ans4 = document.getElementById("ans4").checked;
+
+            let score = 0;
+            
+            if (ans4) {
+                score = 5; 
+            } else if (ans2 && ans3) {
+                score = 4; 
+            } else {
+                score = 2; 
+            }
+
+            let name = document.getElementById("username").value;
+            let message = "";
+
+            if (timeOut) {
+                message = "Время вышло! ";
+            }
+            
+            message += "Поздравляем, " + name + "! Тест сдан на " + score + " балла(ов).";
+            
+            setTimeout(() => alert(message), 100);
+        }
+    </script>
+</body>
+</html>
