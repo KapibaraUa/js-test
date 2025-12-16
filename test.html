@@ -7,28 +7,68 @@
         body {
             font-family: Verdana, sans-serif;
             padding: 20px;
+            background-color: #fff;
         }
-        .question-block {
-            background-color: #f0f0f0;
-            padding: 15px;
-            border: 1px solid #ccc;
-            width: 500px;
-        }
-        h2 { margin-top: 0; }
-        .timer-text {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        .hidden { display: none; }
-        
         
         #nameInputSection {
             margin-bottom: 20px;
-            padding: 10px;
+            padding: 20px;
             background: #e6f7ff;
             border: 1px solid #91d5ff;
             width: 500px;
         }
+
+        #testArea {
+            width: 550px;
+        }
+
+        h2 { 
+            margin-top: 0; 
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .question-block {
+            background-color: #f0f0f0;
+            padding: 15px 20px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .options label {
+            display: block;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .options input {
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 5px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #e0e0e0; 
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        .timer-text {
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -40,41 +80,43 @@
     </div>
 
     <div id="testArea" class="hidden">
-        <h3>2. Написать клиентский сценарий «Тест по JavaScript».</h3>
-        <h2>Вопрос №1 из 12</h2>
+        
+        <h2 id="questionHeader">Вопрос №1 из 12</h2>
 
         <div class="question-block">
-            <p><strong>Для чего можно использовать JavaScript?</strong></p>
+            <span id="questionText" class="question-text">Текст вопроса?</span>
             
-            <form id="quizForm">
-                <div>
-                    <input type="checkbox" id="ans1" name="answer">
-                    <label for="ans1">Для создания самостоятельной исполняемой программы</label>
+            <div class="options" id="optionsContainer">
                 </div>
-                <div>
-                    <input type="checkbox" id="ans2" name="answer">
-                    <label for="ans2">Для обработки событий на web-странице</label>
-                </div>
-                <div>
-                    <input type="checkbox" id="ans3" name="answer">
-                    <label for="ans3">Для добавления динамики и 'интеллекта' в web-страницу</label>
-                </div>
-                <div>
-                    <input type="checkbox" id="ans4" name="answer">
-                    <label for="ans4">все варианты верны</label>
-                </div>
-                <br>
-                <button type="button" id="submitBtn" onclick="finishTest()">Ответить</button>
-            </form>
+            
+            <br>
+            <button type="button" id="nextBtn" onclick="nextQuestion()">Ответить</button>
         </div>
 
-        <p class="timer-text">Осталось: <span id="timer">10</span> секунд</p>
+        <p class="timer-text">Осталось: <span id="timer">180</span> секунд</p>
     </div>
 
     <script>
         "use strict";
 
-        let timeLeft = 10;
+        const questions = [
+            { q: "Для чего можно использовать JavaScript?", a: ["Для создания самостоятельной исполняемой программы", "Для обработки событий на web-странице", "Для добавления динамики и 'интеллекта'", "Все варианты верны"], correct: 2 },
+            { q: "Какой тег используется для скриптов?", a: ["<javascript>", "<js>", "<script>", "<vbs>"], correct: 2 },
+            { q: "Где рекомендуется подключать тяжелые скрипты?", a: ["В <head>", "В начале <body>", "Перед закрывающим </body>", "В файле CSS"], correct: 2 },
+            { q: "Как вывести окно с сообщением?", a: ["prompt()", "alert()", "confirm()", "msg()"], correct: 1 },
+            { q: "Правильное объявление переменной:", a: ["var x = 10;", "variable x = 10;", "int x = 10;", "x := 10;"], correct: 0 },
+            { q: "Результат: 2 + '2'?", a: ["4", "22", "NaN", "Ошибка"], correct: 1 },
+            { q: "Какой оператор возвращает остаток от деления?", a: ["/", "%", "mod", "*"], correct: 1 },
+            { q: "Как создать функцию?", a: ["function:myFunc()", "function myFunc()", "func myFunc()", "create myFunc()"], correct: 1 },
+            { q: "Как вызвать функцию myFunc?", a: ["call myFunc()", "myFunc()", "run myFunc", "myFunc"], correct: 1 },
+            { q: "Условный оператор это:", a: ["for", "while", "if", "loop"], correct: 2 },
+            { q: "Массив начинается с индекса:", a: ["0", "1", "-1", "Любого"], correct: 0 },
+            { q: "Что такое DOM?", a: ["Язык программирования", "Объектная модель документа", "База данных", "Браузер"], correct: 1 }
+        ];
+
+        let currentQuestionIndex = 0; 
+        let correctAnswersCount = 0; 
+        let timeLeft = 180;           
         let timerId = null;
         let testActive = false;
 
@@ -93,53 +135,110 @@
             timerId = setInterval(function() {
                 timeLeft--;
                 document.getElementById("timer").textContent = timeLeft;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerId);
-                    finishTest(true); 
-                }
+                if (timeLeft <= 0) finishTest(true);
             }, 1000);
+
+            renderQuestion();
         }
 
-        
-        function finishTest(timeOut = false) {
-            if (!testActive) return; 
+        function renderQuestion() {
+            let qData = questions[currentQuestionIndex];
+
+            document.getElementById("questionHeader").textContent = 
+                "Вопрос №" + (currentQuestionIndex + 1) + " из " + questions.length;
+
+            document.getElementById("questionText").textContent = qData.q;
+
+            let optionsHTML = "";
+            qData.a.forEach((ans, index) => {
+                optionsHTML += `
+                    <label>
+                        <input type="radio" name="currentAnswer" value="${index}">
+                        ${ans}
+                    </label>
+                `;
+            });
+            document.getElementById("optionsContainer").innerHTML = optionsHTML;
+        }
+
+        function nextQuestion() {
+            let selectedOption = document.querySelector('input[name="currentAnswer"]:checked');
             
-            clearInterval(timerId);
-            testActive = false;
-            let inputs = document.getElementById("quizForm").getElementsByTagName("input");
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].disabled = true;
+            if (!selectedOption) {
+                alert("Сначала выберите вариант ответа!");
+                return;
             }
-            document.getElementById("submitBtn").disabled = true;
 
-            
-            
-            let ans1 = document.getElementById("ans1").checked;
-            let ans2 = document.getElementById("ans2").checked;
-            let ans3 = document.getElementById("ans3").checked;
-            let ans4 = document.getElementById("ans4").checked;
+            let userAnswer = parseInt(selectedOption.value);
+            if (userAnswer === questions[currentQuestionIndex].correct) {
+                correctAnswersCount++;
+            }
 
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                renderQuestion();
+            } else {
+                finishTest(false);
+            }
+        }
+
+        function finishTest(isTimeOut) {
+            if (!testActive) return;
+            clearInterval(timerId); 
+            testActive = false;
+            
+            document.getElementById("testArea").classList.add("hidden");
+            
+            let name = document.getElementById("username").value;
             let score = 0;
             
-            if (ans4) {
-                score = 5; 
-            } else if (ans2 && ans3) {
-                score = 4; 
+            if (correctAnswersCount >= 11) score = 5;
+            else if (correctAnswersCount >= 9) score = 4;
+            else if (correctAnswersCount >= 6) score = 3;
+            else score = 2;
+
+            let win = window.open("", "ResultWindow", "width=500,height=400");
+            
+            if (win) {
+                let resultHTML = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Результат теста</title>
+                        <style>
+                            body { font-family: Verdana, sans-serif; text-align: center; padding: 30px; background: #f9f9f9;}
+                            h2 { color: #333; }
+                            .score-box { font-size: 48px; font-weight: bold; color: #007bff; margin: 20px 0; }
+                            .info { font-size: 18px; margin-bottom: 10px; }
+                            button { padding: 10px 20px; cursor: pointer; background: #e0e0e0; border: 1px solid #ccc; }
+                            button:hover { background: #d0d0d0; }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>${isTimeOut ? "Время вышло!" : "Тестирование завершено"}</h2>
+                        <div class="info">Студент: <strong>${name}</strong></div>
+                        <div class="info">Правильных ответов: ${correctAnswersCount} из ${questions.length}</div>
+                        
+                        <div>Ваша оценка:</div>
+                        <div class="score-box">${score}</div>
+                        
+                        <button onclick="window.close()">Закрыть окно</button>
+                    </body>
+                    </html>
+                `;
+
+                win.document.write(resultHTML);
+                win.document.close(); 
             } else {
-                score = 2; 
+                alert("Разрешите всплывающие окна, чтобы увидеть результат!");
             }
 
-            let name = document.getElementById("username").value;
-            let message = "";
-
-            if (timeOut) {
-                message = "Время вышло! ";
-            }
-            
-            message += "Поздравляем, " + name + "! Тест сдан на " + score + " балла(ов).";
-            
-            setTimeout(() => alert(message), 100);
+            document.getElementById("nameInputSection").classList.remove("hidden");
+            document.getElementById("username").value = "";
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+            timeLeft = 180;
         }
     </script>
 </body>
